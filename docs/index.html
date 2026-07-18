@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>leaklatch — stop secrets before they reach git</title>
+    <meta
+      name="description"
+      content="leaklatch is a git-aware secret & .env leak guard for TypeScript/Node — sub-second pre-commit scanning with the lowest false-positive rate."
+    />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-soft: #f6f7f9;
+        --fg: #1a1d21;
+        --fg-soft: #565b62;
+        --border: #e4e7eb;
+        --accent: #4f46e5;
+        --accent-soft: #eef0ff;
+        --ok: #0f9d58;
+        --crit: #d93025;
+        --code-bg: #0d1117;
+        --code-fg: #e6edf3;
+        --mono: ui-monospace, "SF Mono", "IBM Plex Mono", "JetBrains Mono", Menlo, monospace;
+        --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b0d10;
+          --bg-soft: #14171c;
+          --fg: #e6e9ee;
+          --fg-soft: #9aa2ad;
+          --border: #242a31;
+          --accent: #8b83ff;
+          --accent-soft: #1b1a33;
+          --code-bg: #05070a;
+          --code-fg: #e6edf3;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        background: var(--bg);
+        color: var(--fg);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+      header {
+        text-align: center;
+        padding: 72px 20px 40px;
+      }
+      .logo {
+        font-family: var(--mono);
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--fg-soft);
+        letter-spacing: 0.02em;
+      }
+      h1 {
+        font-size: clamp(2.1rem, 6vw, 3.4rem);
+        line-height: 1.1;
+        margin: 18px 0 12px;
+        letter-spacing: -0.02em;
+      }
+      h1 .accent {
+        color: var(--accent);
+      }
+      .pitch {
+        font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+        color: var(--fg-soft);
+        max-width: 640px;
+        margin: 0 auto 28px;
+      }
+      .cta {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+      }
+      .btn {
+        display: inline-block;
+        padding: 11px 22px;
+        border-radius: 9px;
+        font-weight: 600;
+        font-size: 0.98rem;
+        border: 1px solid var(--border);
+      }
+      .btn.primary {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+      }
+      .btn.primary:hover {
+        text-decoration: none;
+        filter: brightness(1.08);
+      }
+      .btn.ghost {
+        background: var(--bg-soft);
+        color: var(--fg);
+      }
+      .install {
+        font-family: var(--mono);
+        background: var(--code-bg);
+        color: var(--code-fg);
+        padding: 14px 18px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.95rem;
+        margin: 22px auto 0;
+        max-width: 100%;
+        overflow-x: auto;
+      }
+      .install .prompt {
+        color: #6ee7a8;
+      }
+      .terminal {
+        background: var(--code-bg);
+        color: var(--code-fg);
+        border-radius: 12px;
+        font-family: var(--mono);
+        font-size: 0.86rem;
+        margin: 40px auto 0;
+        overflow: hidden;
+        border: 1px solid #1f2630;
+        text-align: left;
+      }
+      .terminal .bar {
+        background: #161b22;
+        padding: 10px 14px;
+        display: flex;
+        gap: 7px;
+      }
+      .terminal .bar span {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .terminal pre {
+        margin: 0;
+        padding: 16px 18px;
+        overflow-x: auto;
+        line-height: 1.55;
+      }
+      .c-dim {
+        color: #8b949e;
+      }
+      .c-crit {
+        color: #ff6b5e;
+        font-weight: 700;
+      }
+      .c-file {
+        color: #79c0ff;
+      }
+      .c-ok {
+        color: #6ee7a8;
+      }
+      section {
+        padding: 56px 0;
+        border-top: 1px solid var(--border);
+      }
+      section h2 {
+        font-size: clamp(1.5rem, 4vw, 2rem);
+        letter-spacing: -0.01em;
+        margin: 0 0 8px;
+      }
+      section .sub {
+        color: var(--fg-soft);
+        margin: 0 0 30px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 18px;
+      }
+      .card {
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 22px;
+      }
+      .card h3 {
+        margin: 0 0 6px;
+        font-size: 1.05rem;
+      }
+      .card p {
+        margin: 0;
+        color: var(--fg-soft);
+        font-size: 0.95rem;
+      }
+      .card .ico {
+        font-size: 1.4rem;
+        margin-bottom: 8px;
+      }
+      .table-scroll {
+        overflow-x: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 560px;
+        font-size: 0.92rem;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 10px 12px;
+        text-align: center;
+      }
+      th:first-child,
+      td:first-child {
+        text-align: left;
+      }
+      thead th {
+        background: var(--bg-soft);
+      }
+      .leaklatch-col {
+        background: var(--accent-soft);
+        font-weight: 700;
+      }
+      .yes {
+        color: var(--ok);
+        font-weight: 700;
+      }
+      .no {
+        color: var(--fg-soft);
+      }
+      footer {
+        text-align: center;
+        color: var(--fg-soft);
+        padding: 44px 20px;
+        border-top: 1px solid var(--border);
+        font-size: 0.9rem;
+      }
+      code.inline {
+        font-family: var(--mono);
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        padding: 1px 6px;
+        font-size: 0.88em;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <div class="logo">🔒 leaklatch</div>
+        <h1>Stop secrets before<br />they reach <span class="accent">git</span>.</h1>
+        <p class="pitch">
+          A git-aware secret &amp; <code class="inline">.env</code> leak guard for TypeScript/Node.
+          Sub-second pre-commit scanning with the lowest false-positive rate.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/DevenderSEO/leaklatch">View on GitHub</a>
+          <a class="btn ghost" href="https://www.npmjs.com/package/leaklatch">npm</a>
+        </div>
+        <div class="install">
+          <span class="prompt">$</span> npx leaklatch install
+        </div>
+
+        <div class="terminal">
+          <div class="bar">
+            <span style="background: #ff5f56"></span>
+            <span style="background: #ffbd2e"></span>
+            <span style="background: #27c93f"></span>
+          </div>
+          <pre><span class="c-dim">$ git commit -m "add billing"</span>
+<span class="c-crit">✖ leaklatch: 1 potential secret detected</span>
+
+<span class="c-file">src/stripe.ts</span>
+  <span class="c-crit">CRITICAL</span>  stripe-secret-key  src/stripe.ts:12
+      <span class="c-dim">match:</span> sk************34
+      <span class="c-dim">fix:  </span> Roll the key in the Stripe dashboard immediately.
+
+<span class="c-dim">commit aborted.</span></pre>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <div class="wrap">
+        <h2>Why leaklatch</h2>
+        <p class="sub">Built for the TypeScript developer's inner loop — not a heavyweight platform.</p>
+        <div class="grid">
+          <div class="card">
+            <div class="ico">⚡</div>
+            <h3>Sub-second pre-commit</h3>
+            <p>Scans only your staged diff, so it never slows down a commit.</p>
+          </div>
+          <div class="card">
+            <div class="ico">🤫</div>
+            <h3>Lowest false positives</h3>
+            <p>Layered rules + entropy + placeholder filters mean it stays quiet unless it's real.</p>
+          </div>
+          <div class="card">
+            <div class="ico">📦</div>
+            <h3>Zero-config, npx-native</h3>
+            <p>One command installs the hook. No YAML, no baseline required to start.</p>
+          </div>
+          <div class="card">
+            <div class="ico">🧩</div>
+            <h3>Allowlist &amp; baseline</h3>
+            <p>Inline <code class="inline">// leaklatch-ignore</code>, config file, and fingerprint baseline.</p>
+          </div>
+          <div class="card">
+            <div class="ico">🔑</div>
+            <h3>Broad rule pack</h3>
+            <p>AWS, GitHub, OpenAI, Anthropic, Stripe, Slack, GCP, JWTs, npm, <code class="inline">.env</code> files.</p>
+          </div>
+          <div class="card">
+            <div class="ico">🤖</div>
+            <h3>CI-ready</h3>
+            <p><code class="inline">--json</code> output and a copy-paste GitHub Action for whole-tree scans.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>vs. the incumbents</h2>
+        <p class="sub">gitleaks, detect-secrets, and trufflehog are great — leaklatch wins on TS-native DX and noise.</p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th class="leaklatch-col">leaklatch</th>
+                <th>gitleaks</th>
+                <th>detect-secrets</th>
+                <th>trufflehog</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>TS/Node-native, <code class="inline">npx</code> install</td>
+                <td class="leaklatch-col yes">✓</td>
+                <td class="no">Go</td>
+                <td class="no">Python</td>
+                <td class="no">Go</td>
+              </tr>
+              <tr>
+                <td>Zero-config default</td>
+                <td class="leaklatch-col yes">✓</td>
+                <td class="no">partial</td>
+                <td class="no">baseline</td>
+                <td class="no">partial</td>
+              </tr>
+              <tr>
+                <td>Scans staged diff (fast pre-commit)</td>
+                <td class="leaklatch-col yes">✓</td>
+                <td class="yes">✓</td>
+                <td class="no">partial</td>
+                <td class="no">partial</td>
+              </tr>
+              <tr>
+                <td>Layered false-positive filtering</td>
+                <td class="leaklatch-col yes">✓</td>
+                <td class="no">partial</td>
+                <td class="yes">✓</td>
+                <td class="no">partial</td>
+              </tr>
+              <tr>
+                <td>Inline ignore directives</td>
+                <td class="leaklatch-col yes">✓</td>
+                <td class="yes">✓</td>
+                <td class="no">partial</td>
+                <td class="no">—</td>
+              </tr>
+              <tr>
+                <td>Programmatic API</td>
+                <td class="leaklatch-col yes">✓</td>
+                <td class="no">—</td>
+                <td class="no">partial</td>
+                <td class="no">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Get started in 30 seconds</h2>
+        <p class="sub">No global install needed.</p>
+        <div class="terminal">
+          <div class="bar">
+            <span style="background: #ff5f56"></span>
+            <span style="background: #ffbd2e"></span>
+            <span style="background: #27c93f"></span>
+          </div>
+          <pre><span class="c-dim"># Install the pre-commit hook in your repo</span>
+<span class="c-ok">$</span> npx leaklatch install
+
+<span class="c-dim"># Run a one-off scan any time</span>
+<span class="c-ok">$</span> npx leaklatch scan
+
+<span class="c-dim"># Scan the whole tree in CI</span>
+<span class="c-ok">$</span> npx leaklatch scan --all --json</pre>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        <p>
+          <a href="https://github.com/DevenderSEO/leaklatch">GitHub</a> ·
+          <a href="https://www.npmjs.com/package/leaklatch">npm</a> ·
+          <a href="https://github.com/DevenderSEO/leaklatch/blob/main/ROADMAP.md">Roadmap</a>
+        </p>
+        <p>MIT licensed · Built by Deven Aggarwal</p>
+      </div>
+    </footer>
+  </body>
+</html>
