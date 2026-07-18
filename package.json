@@ -1,0 +1,81 @@
+{
+  "name": "leaklatch",
+  "version": "0.1.0",
+  "description": "Git-aware secret & .env leak guard for TypeScript/Node — fast pre-commit scanning with the lowest false-positive rate.",
+  "keywords": [
+    "secret-scanning",
+    "secrets",
+    "leak",
+    "gitleaks",
+    "pre-commit",
+    "security",
+    "dotenv",
+    "env",
+    "credentials",
+    "git-hooks",
+    "devsecops",
+    "cli"
+  ],
+  "license": "MIT",
+  "author": "Deven Aggarwal",
+  "homepage": "https://github.com/devenbuilds/leaklatch#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devenbuilds/leaklatch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/devenbuilds/leaklatch/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "leaklatch": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "selfscan": "node dist/cli.js scan --all",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    "@typescript-eslint/parser": "^7.16.1",
+    "@vitest/coverage-v8": "^2.0.5",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.3",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.5"
+  }
+}

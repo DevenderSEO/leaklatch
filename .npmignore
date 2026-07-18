@@ -1,0 +1,15 @@
+src/
+test/
+docs/
+.github/
+*.config.ts
+.eslintrc.cjs
+.prettierrc
+.prettierignore
+coverage/
+tsconfig.json
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+ROADMAP.md
+ISSUES.md
+GRANT_APPLICATION_DRAFT.md
