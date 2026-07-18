@@ -1,0 +1,52 @@
+name: 🐛 Bug report
+description: Something isn't working as expected
+title: '[bug]: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please **never paste a real secret** — use
+        an obviously-fake value that reproduces the behavior.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+      placeholder: leaklatch flagged / missed ...
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: A minimal line, diff, or repo that reproduces it. Use fake secrets.
+      render: shell
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: Kind of issue
+      options:
+        - False positive (flagged something that isn't a secret)
+        - False negative (missed a real credential format)
+        - Crash / error
+        - Hook installation issue
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: leaklatch version
+      placeholder: 'e.g. 0.1.0 (leaklatch --version)'
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node version
+      placeholder: 'e.g. 20.11.0'
+    validations:
+      required: true

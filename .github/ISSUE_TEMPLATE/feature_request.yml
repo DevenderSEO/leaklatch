@@ -1,0 +1,31 @@
+name: 💡 Feature request
+description: Suggest a new rule, flag, or capability
+title: '[feat]: '
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What are you trying to do that leaklatch makes hard today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should leaklatch do? For a new rule, include the credential format.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Fit check
+      options:
+        - label: This keeps leaklatch fast and low-noise (see ROADMAP non-goals)
