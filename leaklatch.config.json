@@ -1,0 +1,4 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DevenderSEO/leaklatch/main/schema.json",
+  "ignorePaths": ["test/**"]
+}

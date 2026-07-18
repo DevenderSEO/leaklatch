@@ -18,13 +18,13 @@
   ],
   "license": "MIT",
   "author": "Deven Aggarwal",
-  "homepage": "https://github.com/devenbuilds/leaklatch#readme",
+  "homepage": "https://github.com/DevenderSEO/leaklatch#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/devenbuilds/leaklatch.git"
+    "url": "git+https://github.com/DevenderSEO/leaklatch.git"
   },
   "bugs": {
-    "url": "https://github.com/devenbuilds/leaklatch/issues"
+    "url": "https://github.com/DevenderSEO/leaklatch/issues"
   },
   "type": "module",
   "engines": {
