@@ -6,6 +6,7 @@
 [![CI](https://github.com/DevenderSEO/leaklatch/actions/workflows/ci.yml/badge.svg)](https://github.com/DevenderSEO/leaklatch/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](https://nodejs.org)
+[![Website](https://img.shields.io/badge/website-leaklatch.click-4f46e5.svg)](https://leaklatch.click)
 
 leaklatch stops API keys, tokens, and `.env` files from ever reaching your git
 history. It scans **only your staged diff** on every commit, so it's fast enough

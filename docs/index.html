@@ -6,21 +6,44 @@
     <title>leaklatch — stop secrets before they reach git</title>
     <meta
       name="description"
-      content="leaklatch is a git-aware secret & .env leak guard for TypeScript/Node — sub-second pre-commit scanning with the lowest false-positive rate."
+      content="leaklatch is a git-aware secret & .env leak guard for TypeScript/Node — sub-second pre-commit scanning with the lowest false-positive rate. Zero-config, npx-installable, MIT."
+    />
+    <link rel="canonical" href="https://leaklatch.click/" />
+    <meta name="theme-color" content="#4f46e5" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%92%3C/text%3E%3C/svg%3E"
+    />
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://leaklatch.click/" />
+    <meta property="og:title" content="leaklatch — stop secrets before they reach git" />
+    <meta
+      property="og:description"
+      content="Git-aware secret & .env leak guard for TypeScript/Node. Sub-second pre-commit scanning with the lowest false-positive rate."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="leaklatch — stop secrets before they reach git" />
+    <meta
+      name="twitter:description"
+      content="Git-aware secret & .env leak guard for TypeScript/Node. Zero-config, npx-installable, MIT."
     />
     <style>
       :root {
         --bg: #ffffff;
         --bg-soft: #f6f7f9;
+        --bg-elev: #ffffff;
         --fg: #1a1d21;
         --fg-soft: #565b62;
         --border: #e4e7eb;
         --accent: #4f46e5;
+        --accent-2: #7c3aed;
         --accent-soft: #eef0ff;
         --ok: #0f9d58;
         --crit: #d93025;
         --code-bg: #0d1117;
         --code-fg: #e6edf3;
+        --nav-bg: rgba(255, 255, 255, 0.8);
         --mono: ui-monospace, "SF Mono", "IBM Plex Mono", "JetBrains Mono", Menlo, monospace;
         --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
       }
@@ -28,27 +51,55 @@
         :root {
           --bg: #0b0d10;
           --bg-soft: #14171c;
+          --bg-elev: #14171c;
           --fg: #e6e9ee;
           --fg-soft: #9aa2ad;
           --border: #242a31;
           --accent: #8b83ff;
+          --accent-2: #a78bfa;
           --accent-soft: #1b1a33;
           --code-bg: #05070a;
           --code-fg: #e6edf3;
+          --nav-bg: rgba(11, 13, 16, 0.8);
         }
+      }
+      :root[data-theme="light"] {
+        --bg: #ffffff;
+        --bg-soft: #f6f7f9;
+        --bg-elev: #ffffff;
+        --fg: #1a1d21;
+        --fg-soft: #565b62;
+        --border: #e4e7eb;
+        --accent: #4f46e5;
+        --accent-soft: #eef0ff;
+        --code-bg: #0d1117;
+        --nav-bg: rgba(255, 255, 255, 0.8);
+      }
+      :root[data-theme="dark"] {
+        --bg: #0b0d10;
+        --bg-soft: #14171c;
+        --bg-elev: #14171c;
+        --fg: #e6e9ee;
+        --fg-soft: #9aa2ad;
+        --border: #242a31;
+        --accent: #8b83ff;
+        --accent-soft: #1b1a33;
+        --code-bg: #05070a;
+        --nav-bg: rgba(11, 13, 16, 0.8);
       }
       * {
         box-sizing: border-box;
       }
       html {
         scroll-behavior: smooth;
+        scroll-padding-top: 72px;
       }
       body {
         margin: 0;
         font-family: var(--sans);
         background: var(--bg);
         color: var(--fg);
-        line-height: 1.6;
+        line-height: 1.65;
         -webkit-font-smoothing: antialiased;
       }
       a {
@@ -59,50 +110,134 @@
         text-decoration: underline;
       }
       .wrap {
-        max-width: 960px;
+        max-width: 1000px;
         margin: 0 auto;
         padding: 0 20px;
       }
-      header {
-        text-align: center;
-        padding: 72px 20px 40px;
+      code.inline {
+        font-family: var(--mono);
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        padding: 1px 6px;
+        font-size: 0.88em;
       }
-      .logo {
+
+      /* ---------- Nav ---------- */
+      nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: var(--nav-bg);
+        backdrop-filter: saturate(180%) blur(12px);
+        -webkit-backdrop-filter: saturate(180%) blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-inner {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .brand {
         font-family: var(--mono);
         font-weight: 700;
         font-size: 15px;
+        color: var(--fg);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .brand:hover {
+        text-decoration: none;
+      }
+      .nav-links {
+        display: flex;
+        gap: 20px;
+        margin-left: auto;
+        align-items: center;
+      }
+      .nav-links a {
         color: var(--fg-soft);
-        letter-spacing: 0.02em;
+        font-size: 0.92rem;
+        font-weight: 500;
+      }
+      .nav-links a:hover {
+        color: var(--fg);
+        text-decoration: none;
+      }
+      .nav-links .gh {
+        color: var(--fg);
+        font-weight: 600;
+      }
+      @media (max-width: 760px) {
+        .nav-links a:not(.gh) {
+          display: none;
+        }
+      }
+
+      /* ---------- Hero ---------- */
+      header.hero {
+        text-align: center;
+        padding: 68px 20px 46px;
+        background:
+          radial-gradient(60% 60% at 50% 0%, var(--accent-soft) 0%, transparent 70%);
+      }
+      .badge-row {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      .chip {
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--accent);
+        background: var(--accent-soft);
+        border: 1px solid var(--border);
+        padding: 4px 11px;
+        border-radius: 100px;
+        letter-spacing: 0.01em;
       }
       h1 {
-        font-size: clamp(2.1rem, 6vw, 3.4rem);
-        line-height: 1.1;
-        margin: 18px 0 12px;
-        letter-spacing: -0.02em;
+        font-size: clamp(2.2rem, 6vw, 3.6rem);
+        line-height: 1.08;
+        margin: 8px 0 14px;
+        letter-spacing: -0.025em;
+        font-weight: 800;
       }
       h1 .accent {
-        color: var(--accent);
+        background: linear-gradient(120deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
       .pitch {
-        font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+        font-size: clamp(1.05rem, 2.4vw, 1.28rem);
         color: var(--fg-soft);
-        max-width: 640px;
-        margin: 0 auto 28px;
+        max-width: 660px;
+        margin: 0 auto 26px;
       }
       .cta {
         display: flex;
         gap: 12px;
         justify-content: center;
         flex-wrap: wrap;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
       }
       .btn {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         padding: 11px 22px;
-        border-radius: 9px;
+        border-radius: 10px;
         font-weight: 600;
         font-size: 0.98rem;
         border: 1px solid var(--border);
+        cursor: pointer;
       }
       .btn.primary {
         background: var(--accent);
@@ -117,39 +252,64 @@
         background: var(--bg-soft);
         color: var(--fg);
       }
+      .btn.ghost:hover {
+        text-decoration: none;
+        border-color: var(--accent);
+      }
       .install {
         font-family: var(--mono);
         background: var(--code-bg);
         color: var(--code-fg);
-        padding: 14px 18px;
+        padding: 13px 16px;
         border-radius: 10px;
         display: inline-flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         font-size: 0.95rem;
-        margin: 22px auto 0;
+        margin: 26px auto 0;
         max-width: 100%;
         overflow-x: auto;
+        border: 1px solid #1f2630;
       }
       .install .prompt {
         color: #6ee7a8;
+        user-select: none;
       }
+      .install button {
+        background: transparent;
+        border: 1px solid #30363d;
+        color: #8b949e;
+        border-radius: 6px;
+        padding: 3px 9px;
+        font-size: 0.78rem;
+        cursor: pointer;
+        font-family: var(--sans);
+      }
+      .install button:hover {
+        color: var(--code-fg);
+        border-color: #4b5563;
+      }
+
+      /* ---------- Terminal ---------- */
       .terminal {
         background: var(--code-bg);
         color: var(--code-fg);
         border-radius: 12px;
         font-family: var(--mono);
-        font-size: 0.86rem;
+        font-size: 0.85rem;
         margin: 40px auto 0;
+        max-width: 720px;
         overflow: hidden;
         border: 1px solid #1f2630;
         text-align: left;
+        box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.5);
       }
       .terminal .bar {
         background: #161b22;
         padding: 10px 14px;
         display: flex;
         gap: 7px;
+        align-items: center;
       }
       .terminal .bar span {
         width: 11px;
@@ -157,11 +317,16 @@
         border-radius: 50%;
         display: inline-block;
       }
+      .terminal .bar .title {
+        margin-left: 8px;
+        color: #6e7681;
+        font-size: 0.78rem;
+      }
       .terminal pre {
         margin: 0;
         padding: 16px 18px;
         overflow-x: auto;
-        line-height: 1.55;
+        line-height: 1.6;
       }
       .c-dim {
         color: #8b949e;
@@ -176,33 +341,51 @@
       .c-ok {
         color: #6ee7a8;
       }
+      .c-warn {
+        color: #e3b341;
+      }
+
+      /* ---------- Sections ---------- */
       section {
-        padding: 56px 0;
+        padding: 60px 0;
         border-top: 1px solid var(--border);
       }
-      section h2 {
-        font-size: clamp(1.5rem, 4vw, 2rem);
-        letter-spacing: -0.01em;
+      .eyebrow {
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 0.82rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
         margin: 0 0 8px;
+      }
+      section h2 {
+        font-size: clamp(1.55rem, 4vw, 2.1rem);
+        letter-spacing: -0.02em;
+        margin: 0 0 10px;
+        font-weight: 800;
       }
       section .sub {
         color: var(--fg-soft);
-        margin: 0 0 30px;
+        margin: 0 0 32px;
+        max-width: 640px;
+        font-size: 1.02rem;
       }
+
+      /* ---------- Feature grid ---------- */
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 18px;
       }
       .card {
         background: var(--bg-soft);
         border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 22px;
+        border-radius: 14px;
+        padding: 24px;
       }
       .card h3 {
         margin: 0 0 6px;
-        font-size: 1.05rem;
+        font-size: 1.06rem;
       }
       .card p {
         margin: 0;
@@ -210,22 +393,101 @@
         font-size: 0.95rem;
       }
       .card .ico {
-        font-size: 1.4rem;
-        margin-bottom: 8px;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
       }
+
+      /* ---------- How it works pipeline ---------- */
+      .pipe {
+        display: grid;
+        gap: 14px;
+      }
+      .layer {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+      }
+      .layer .num {
+        flex: none;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+      }
+      .layer h3 {
+        margin: 2px 0 4px;
+        font-size: 1.02rem;
+      }
+      .layer p {
+        margin: 0;
+        color: var(--fg-soft);
+        font-size: 0.94rem;
+      }
+
+      /* ---------- Code blocks ---------- */
+      .code {
+        background: var(--code-bg);
+        color: var(--code-fg);
+        border: 1px solid #1f2630;
+        border-radius: 12px;
+        font-family: var(--mono);
+        font-size: 0.85rem;
+        overflow-x: auto;
+        margin: 0;
+      }
+      .code pre {
+        margin: 0;
+        padding: 18px 20px;
+        line-height: 1.65;
+      }
+      .code .c {
+        color: #8b949e;
+      }
+      .code .k {
+        color: #6ee7a8;
+      }
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+      @media (max-width: 760px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+      }
+      .col-label {
+        font-weight: 700;
+        margin: 0 0 10px;
+        font-size: 0.95rem;
+      }
+
+      /* ---------- Table ---------- */
       .table-scroll {
         overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 12px;
       }
       table {
         border-collapse: collapse;
         width: 100%;
-        min-width: 560px;
+        min-width: 580px;
         font-size: 0.92rem;
       }
       th,
       td {
-        border: 1px solid var(--border);
-        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        padding: 12px 14px;
         text-align: center;
       }
       th:first-child,
@@ -234,6 +496,9 @@
       }
       thead th {
         background: var(--bg-soft);
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
       }
       .leaklatch-col {
         background: var(--accent-soft);
@@ -246,38 +511,157 @@
       .no {
         color: var(--fg-soft);
       }
+
+      /* ---------- Detection chips ---------- */
+      .detects {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .detects span {
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        padding: 7px 15px;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      .detects span b {
+        color: var(--accent);
+        font-family: var(--mono);
+        font-weight: 700;
+      }
+
+      /* ---------- Config table ---------- */
+      .cfg-table td:first-child {
+        font-family: var(--mono);
+        color: var(--accent);
+        white-space: nowrap;
+      }
+      .cfg-table td {
+        text-align: left;
+      }
+
+      /* ---------- FAQ ---------- */
+      details {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0;
+        margin-bottom: 12px;
+        background: var(--bg-soft);
+        overflow: hidden;
+      }
+      details summary {
+        cursor: pointer;
+        padding: 16px 20px;
+        font-weight: 600;
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      details summary::-webkit-details-marker {
+        display: none;
+      }
+      details summary::after {
+        content: "+";
+        color: var(--accent);
+        font-size: 1.3rem;
+        font-weight: 400;
+        flex: none;
+      }
+      details[open] summary::after {
+        content: "−";
+      }
+      details .body {
+        padding: 0 20px 18px;
+        color: var(--fg-soft);
+        font-size: 0.96rem;
+      }
+      details .body p {
+        margin: 0 0 8px;
+      }
+
+      /* ---------- CTA band ---------- */
+      .band {
+        text-align: center;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        border-radius: 18px;
+        padding: 48px 24px;
+        color: #fff;
+        margin: 8px 0;
+      }
+      .band h2 {
+        color: #fff;
+        margin: 0 0 10px;
+      }
+      .band p {
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0 0 22px;
+        font-size: 1.05rem;
+      }
+      .band .install {
+        background: rgba(0, 0, 0, 0.28);
+        border-color: rgba(255, 255, 255, 0.25);
+      }
+
+      /* ---------- Footer ---------- */
       footer {
         text-align: center;
         color: var(--fg-soft);
-        padding: 44px 20px;
+        padding: 46px 20px;
         border-top: 1px solid var(--border);
         font-size: 0.9rem;
       }
-      code.inline {
-        font-family: var(--mono);
-        background: var(--bg-soft);
-        border: 1px solid var(--border);
-        border-radius: 5px;
-        padding: 1px 6px;
-        font-size: 0.88em;
+      footer a {
+        color: var(--fg-soft);
+      }
+      footer .links {
+        margin-bottom: 10px;
+      }
+      footer .links a {
+        margin: 0 10px;
       }
     </style>
   </head>
   <body>
-    <header>
+    <nav>
+      <div class="nav-inner">
+        <a class="brand" href="#top">🔒 leaklatch</a>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#how">How it works</a>
+          <a href="#usage">Usage</a>
+          <a href="#config">Config</a>
+          <a href="#faq">FAQ</a>
+          <a class="gh" href="https://github.com/DevenderSEO/leaklatch">GitHub ↗</a>
+        </div>
+      </div>
+    </nav>
+
+    <header class="hero" id="top">
       <div class="wrap">
-        <div class="logo">🔒 leaklatch</div>
+        <div class="badge-row">
+          <span class="chip">TypeScript-native</span>
+          <span class="chip">Zero-config</span>
+          <span class="chip">100% local · no telemetry</span>
+          <span class="chip">MIT</span>
+        </div>
         <h1>Stop secrets before<br />they reach <span class="accent">git</span>.</h1>
         <p class="pitch">
           A git-aware secret &amp; <code class="inline">.env</code> leak guard for TypeScript/Node.
-          Sub-second pre-commit scanning with the lowest false-positive rate.
+          Sub-second pre-commit scanning with the <strong>lowest false-positive rate</strong> —
+          so your team actually keeps it enabled.
         </p>
         <div class="cta">
-          <a class="btn primary" href="https://github.com/DevenderSEO/leaklatch">View on GitHub</a>
-          <a class="btn ghost" href="https://www.npmjs.com/package/leaklatch">npm</a>
+          <a class="btn primary" href="#usage">Get started</a>
+          <a class="btn ghost" href="https://github.com/DevenderSEO/leaklatch">⭐ Star on GitHub</a>
         </div>
         <div class="install">
-          <span class="prompt">$</span> npx leaklatch install
+          <span class="prompt">$</span>
+          <span id="install-cmd">npx leaklatch install</span>
+          <button onclick="copyInstall(this)">Copy</button>
         </div>
 
         <div class="terminal">
@@ -285,6 +669,7 @@
             <span style="background: #ff5f56"></span>
             <span style="background: #ffbd2e"></span>
             <span style="background: #27c93f"></span>
+            <span class="title">bash — pre-commit</span>
           </div>
           <pre><span class="c-dim">$ git commit -m "add billing"</span>
 <span class="c-crit">✖ leaklatch: 1 potential secret detected</span>
@@ -299,10 +684,14 @@
       </div>
     </header>
 
-    <section>
+    <section id="features">
       <div class="wrap">
-        <h2>Why leaklatch</h2>
-        <p class="sub">Built for the TypeScript developer's inner loop — not a heavyweight platform.</p>
+        <p class="eyebrow">Why leaklatch</p>
+        <h2>Built for the inner loop, not a security platform</h2>
+        <p class="sub">
+          The incumbents (gitleaks, detect-secrets, trufflehog) are great, broad tools. leaklatch
+          wins where it counts for day-to-day work: speed, DX, and staying quiet unless it's real.
+        </p>
         <div class="grid">
           <div class="card">
             <div class="ico">⚡</div>
@@ -320,28 +709,232 @@
             <p>One command installs the hook. No YAML, no baseline required to start.</p>
           </div>
           <div class="card">
-            <div class="ico">🧩</div>
-            <h3>Allowlist &amp; baseline</h3>
-            <p>Inline <code class="inline">// leaklatch-ignore</code>, config file, and fingerprint baseline.</p>
+            <div class="ico">🔒</div>
+            <h3>100% local</h3>
+            <p>No network calls, no telemetry. Your code and secrets never leave your machine.</p>
           </div>
           <div class="card">
-            <div class="ico">🔑</div>
-            <h3>Broad rule pack</h3>
-            <p>AWS, GitHub, OpenAI, Anthropic, Stripe, Slack, GCP, JWTs, npm, <code class="inline">.env</code> files.</p>
+            <div class="ico">🧩</div>
+            <h3>Allowlist &amp; baseline</h3>
+            <p>Inline <code class="inline">// leaklatch-ignore</code>, a config file, and a fingerprint baseline for gradual adoption.</p>
           </div>
           <div class="card">
             <div class="ico">🤖</div>
-            <h3>CI-ready</h3>
-            <p><code class="inline">--json</code> output and a copy-paste GitHub Action for whole-tree scans.</p>
+            <h3>CI-ready &amp; scriptable</h3>
+            <p><code class="inline">--json</code> output, a copy-paste GitHub Action, and a programmatic API.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <section>
+    <section id="how">
       <div class="wrap">
+        <p class="eyebrow">How it works</p>
+        <h2>Five layers between a match and an alert</h2>
+        <p class="sub">
+          Regex-only scanners flag anything that <em>looks</em> like a secret. leaklatch runs every
+          candidate through layered validation before it ever becomes a finding.
+        </p>
+        <div class="pipe">
+          <div class="layer">
+            <div class="num">1</div>
+            <div>
+              <h3>Prefix-anchored rules</h3>
+              <p>
+                Where a credential has a distinctive prefix (<code class="inline">ghp_</code>,
+                <code class="inline">sk-ant-</code>, <code class="inline">AKIA…</code>,
+                <code class="inline">sk_live_</code>), the rule requires it — no guessing from shape.
+              </p>
+            </div>
+          </div>
+          <div class="layer">
+            <div class="num">2</div>
+            <div>
+              <h3>Per-rule Shannon entropy gates</h3>
+              <p>
+                Generic assignments like <code class="inline">API_KEY=…</code> must clear an entropy
+                threshold, so <code class="inline">API_KEY=changeme</code> never fires.
+              </p>
+            </div>
+          </div>
+          <div class="layer">
+            <div class="num">3</div>
+            <div>
+              <h3>Placeholder &amp; context filters</h3>
+              <p>
+                Known placeholders (<code class="inline">xxxx</code>,
+                <code class="inline">your-key-here</code>, <code class="inline">&lt;token&gt;</code>,
+                <code class="inline">${VAR}</code>), example values, and test/fixture paths are skipped.
+              </p>
+            </div>
+          </div>
+          <div class="layer">
+            <div class="num">4</div>
+            <div>
+              <h3>Character-class &amp; structure checks</h3>
+              <p>
+                A long lowercase word isn't a secret just because it's long. File paths and
+                camelCase identifiers (a classic false positive) are rejected; real credential
+                material mixes character classes.
+              </p>
+            </div>
+          </div>
+          <div class="layer">
+            <div class="num">5</div>
+            <div>
+              <h3>De-duplication</h3>
+              <p>
+                A single leaked value matched by several rules is reported <strong>once</strong>,
+                under the most specific rule. Lock files and binaries are skipped entirely.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="usage">
+      <div class="wrap">
+        <p class="eyebrow">Usage</p>
+        <h2>Up and running in 30 seconds</h2>
+        <p class="sub">No global install needed. Works with plain git hooks and husky alike.</p>
+        <div class="two-col">
+          <div>
+            <p class="col-label">Install the pre-commit hook</p>
+            <div class="code">
+              <pre><span class="c"># in your repo — installs an</span>
+<span class="c"># append-safe pre-commit hook</span>
+$ <span class="k">npx leaklatch install</span>
+
+<span class="c"># every commit now scans staged changes</span></pre>
+            </div>
+          </div>
+          <div>
+            <p class="col-label">Scan on demand</p>
+            <div class="code">
+              <pre>$ <span class="k">npx leaklatch scan</span>            <span class="c"># staged diff</span>
+$ <span class="k">npx leaklatch scan --all</span>      <span class="c"># whole tree</span>
+$ <span class="k">npx leaklatch scan --json</span>     <span class="c"># for CI</span>
+$ <span class="k">npx leaklatch scan --verbose</span>  <span class="c"># details</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 18px" class="two-col">
+          <div>
+            <p class="col-label">Drop into GitHub Actions</p>
+            <div class="code">
+              <pre><span class="k">name:</span> secret-scan
+<span class="k">on:</span> [push, pull_request]
+<span class="k">jobs:</span>
+  leaklatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npx leaklatch scan --all</pre>
+            </div>
+          </div>
+          <div>
+            <p class="col-label">Or embed the API</p>
+            <div class="code">
+              <pre><span class="k">import</span> { scan } <span class="k">from</span> <span class="c">'leaklatch'</span>;
+
+<span class="k">const</span> result = scan({ all: <span class="k">true</span> });
+<span class="k">if</span> (result.findings.length) {
+  process.exit(1); <span class="c">// fail CI</span>
+}</pre>
+            </div>
+          </div>
+        </div>
+        <p style="margin-top: 22px; color: var(--fg-soft); font-size: 0.92rem">
+          Exit codes: <code class="inline">0</code> clean · <code class="inline">1</code> findings ·
+          <code class="inline">2</code> not a git repo. Reverse the hook any time with
+          <code class="inline">leaklatch uninstall</code>.
+        </p>
+      </div>
+    </section>
+
+    <section id="config">
+      <div class="wrap">
+        <p class="eyebrow">Configuration</p>
+        <h2>Zero-config by default, tunable when you need it</h2>
+        <p class="sub">
+          Drop a <code class="inline">leaklatch.config.json</code> in your repo root to customise
+          behaviour. Everything below is optional.
+        </p>
+        <div class="table-scroll">
+          <table class="cfg-table">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ignorePaths</td>
+                <td>Substrings or globs (<code class="inline">*</code>, <code class="inline">**</code>) of paths to skip entirely.</td>
+              </tr>
+              <tr>
+                <td>disabledRules</td>
+                <td>Rule ids to turn off.</td>
+              </tr>
+              <tr>
+                <td>entropyOverrides</td>
+                <td>Per-rule entropy thresholds, keyed by rule id.</td>
+              </tr>
+              <tr>
+                <td>genericEntropyThreshold</td>
+                <td>Floor for the generic high-entropy detector.</td>
+              </tr>
+              <tr>
+                <td>disableGenericEntropy</td>
+                <td>Turn off the generic entropy detector.</td>
+              </tr>
+              <tr>
+                <td>customRules</td>
+                <td>Your own regex rules (<code class="inline">id</code> + <code class="inline">regex</code> required).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top: 20px" class="two-col">
+          <div>
+            <p class="col-label">Inline ignores</p>
+            <div class="code">
+              <pre><span class="c">// leaklatch-ignore</span>
+<span class="k">const</span> legacy = <span class="c">'sk_live_...'</span>; <span class="c">// leaklatch-ignore</span>
+
+<span class="c">// leaklatch-ignore-next-line</span>
+<span class="k">const</span> knownSafe = <span class="c">'...'</span>;</pre>
+            </div>
+          </div>
+          <div>
+            <p class="col-label">Baseline (adopt on an existing repo)</p>
+            <div class="code">
+              <pre><span class="c"># accept current findings so only</span>
+<span class="c"># NEW secrets block commits</span>
+$ <span class="k">leaklatch scan --all \
+    --update-baseline</span>
+
+<span class="c"># writes .leaklatch-baseline.json</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="compare">
+      <div class="wrap">
+        <p class="eyebrow">Comparison</p>
         <h2>vs. the incumbents</h2>
-        <p class="sub">gitleaks, detect-secrets, and trufflehog are great — leaklatch wins on TS-native DX and noise.</p>
+        <p class="sub">
+          gitleaks, detect-secrets, and trufflehog are excellent tools. leaklatch's edge is
+          TS-native DX and a far lower noise floor.
+        </p>
         <div class="table-scroll">
           <table>
             <thead>
@@ -402,37 +995,135 @@
       </div>
     </section>
 
+    <section id="detects">
+      <div class="wrap">
+        <p class="eyebrow">Coverage</p>
+        <h2>What it detects out of the box</h2>
+        <p class="sub">A focused, high-signal rule pack — plus a generic entropy net and committed <code class="inline">.env</code> detection.</p>
+        <div class="detects">
+          <span><b>AWS</b> access &amp; secret keys</span>
+          <span><b>GitHub</b> ghp_ / gho_ / github_pat_</span>
+          <span><b>OpenAI</b> sk-</span>
+          <span><b>Anthropic</b> sk-ant-</span>
+          <span><b>Google</b> API keys</span>
+          <span><b>Stripe</b> live keys</span>
+          <span><b>Slack</b> tokens &amp; webhooks</span>
+          <span><b>Private keys</b> PEM blocks</span>
+          <span><b>JWT</b> tokens</span>
+          <span><b>npm</b> tokens</span>
+          <span>Generic <b>KEY/SECRET/TOKEN/PASSWORD</b></span>
+          <span>Committed <b>.env</b> files</span>
+          <span>Generic <b>high-entropy</b> strings</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="wrap">
+        <p class="eyebrow">FAQ</p>
+        <h2>Questions, answered</h2>
+        <div style="margin-top: 24px">
+          <details>
+            <summary>Does leaklatch send my code or secrets anywhere?</summary>
+            <div class="body">
+              <p>
+                No. leaklatch runs entirely on your machine — it shells out to <code class="inline">git</code>
+                and scans locally. There are no network calls and no telemetry. Nothing about your code
+                ever leaves your device.
+              </p>
+            </div>
+          </details>
+          <details>
+            <summary>Is it really free?</summary>
+            <div class="body"><p>Yes — MIT licensed and open source. Use it in personal and commercial projects freely.</p></div>
+          </details>
+          <details>
+            <summary>How is it different from gitleaks or trufflehog?</summary>
+            <div class="body">
+              <p>
+                Those are excellent, broad, binary-based tools. leaklatch is built for the TypeScript
+                developer's inner loop: it installs with <code class="inline">npx</code>, needs zero config,
+                runs in well under a second on a staged diff, and is tuned specifically to minimise false
+                positives — the number-one reason teams disable secret scanning.
+              </p>
+            </div>
+          </details>
+          <details>
+            <summary>It flagged something that isn't a secret. What now?</summary>
+            <div class="body">
+              <p>
+                You have three escape hatches: an inline <code class="inline">// leaklatch-ignore</code>
+                comment, an <code class="inline">ignorePaths</code>/<code class="inline">disabledRules</code>
+                entry in <code class="inline">leaklatch.config.json</code>, or a fingerprint baseline via
+                <code class="inline">leaklatch scan --update-baseline</code>. If you hit a false positive that
+                should never fire, please open an issue — those reports directly improve the filters.
+              </p>
+            </div>
+          </details>
+          <details>
+            <summary>Does it work with husky?</summary>
+            <div class="body">
+              <p>
+                Yes. <code class="inline">leaklatch install</code> is append-safe: if you already have a
+                pre-commit hook (including husky's), it inserts a clearly delimited block and leaves the rest
+                untouched. <code class="inline">leaklatch uninstall</code> removes only that block.
+              </p>
+            </div>
+          </details>
+          <details>
+            <summary>What Node versions are supported?</summary>
+            <div class="body"><p>Node 18+. Tested in CI on Node 18, 20, and 22.</p></div>
+          </details>
+          <details>
+            <summary>Can I use it purely in CI without the hook?</summary>
+            <div class="body">
+              <p>
+                Absolutely. Run <code class="inline">leaklatch scan --all --json</code> in your pipeline; it
+                exits non-zero when a secret is found. A ready-to-copy GitHub Action is in the docs above.
+              </p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
     <section>
       <div class="wrap">
-        <h2>Get started in 30 seconds</h2>
-        <p class="sub">No global install needed.</p>
-        <div class="terminal">
-          <div class="bar">
-            <span style="background: #ff5f56"></span>
-            <span style="background: #ffbd2e"></span>
-            <span style="background: #27c93f"></span>
+        <div class="band">
+          <h2>Latch your leaks shut.</h2>
+          <p>One command. Zero config. Your secrets stay out of git.</p>
+          <div class="install" style="justify-content: center">
+            <span class="prompt">$</span>
+            <span>npx leaklatch install</span>
           </div>
-          <pre><span class="c-dim"># Install the pre-commit hook in your repo</span>
-<span class="c-ok">$</span> npx leaklatch install
-
-<span class="c-dim"># Run a one-off scan any time</span>
-<span class="c-ok">$</span> npx leaklatch scan
-
-<span class="c-dim"># Scan the whole tree in CI</span>
-<span class="c-ok">$</span> npx leaklatch scan --all --json</pre>
         </div>
       </div>
     </section>
 
     <footer>
       <div class="wrap">
-        <p>
-          <a href="https://github.com/DevenderSEO/leaklatch">GitHub</a> ·
-          <a href="https://www.npmjs.com/package/leaklatch">npm</a> ·
+        <div class="links">
+          <a href="https://github.com/DevenderSEO/leaklatch">GitHub</a>
+          <a href="https://www.npmjs.com/package/leaklatch">npm</a>
           <a href="https://github.com/DevenderSEO/leaklatch/blob/main/ROADMAP.md">Roadmap</a>
-        </p>
-        <p>MIT licensed · Built by Deven Aggarwal</p>
+          <a href="https://github.com/DevenderSEO/leaklatch/blob/main/CONTRIBUTING.md">Contribute</a>
+        </div>
+        <p>MIT licensed · Built by Deven Aggarwal · <a href="https://leaklatch.click">leaklatch.click</a></p>
       </div>
     </footer>
+
+    <script>
+      function copyInstall(btn) {
+        const text = 'npx leaklatch install';
+        navigator.clipboard?.writeText(text).then(
+          () => {
+            const old = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => (btn.textContent = old), 1500);
+          },
+          () => {},
+        );
+      }
+    </script>
   </body>
 </html>
