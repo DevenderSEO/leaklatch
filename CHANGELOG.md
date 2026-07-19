@@ -6,6 +6,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `scan --no-generic`: disable the generic high-entropy detector for a single
+  run without editing the config file.
+
+### Fixed
+
+- `scan --no-baseline` now actually ignores the baseline file. It previously
+  read `flags.noBaseline`, but commander maps a negated option (`--no-baseline`)
+  onto the base property name (`baseline: false`), so the flag was silently a
+  no-op.
+
 ## [0.1.0] - 2026-07-19
 
 ### Added

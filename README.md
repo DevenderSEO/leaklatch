@@ -109,6 +109,7 @@ leaklatch scan --verbose       # show line preview, entropy, fingerprints
 leaklatch scan --quiet         # print nothing when clean
 leaklatch scan --no-color      # disable ANSI colors
 leaklatch scan --no-baseline   # ignore the baseline file for this run
+leaklatch scan --no-generic    # disable the generic high-entropy detector for this run
 leaklatch scan --update-baseline   # accept current findings into the baseline
 ```
 
