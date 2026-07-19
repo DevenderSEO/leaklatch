@@ -1,6 +1,6 @@
 {
   "name": "leaklatch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Git-aware secret & .env leak guard for TypeScript/Node — fast pre-commit scanning with the lowest false-positive rate.",
   "keywords": [
     "secret-scanning",

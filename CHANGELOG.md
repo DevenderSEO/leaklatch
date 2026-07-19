@@ -6,6 +6,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-07-19
+
+### Fixed
+
+- Pre-commit hook no longer scans (and prints findings) twice when `leaklatch`
+  is run via `npx` and a secret is found. The hook now resolves the runner once
+  (global binary → cached `npx` → fresh `npx`) and scans exactly once.
+
+### Changed
+
+- Friendlier "not a git repository" message that tells you to run `git init`
+  first or run inside an existing repository.
+
 ## [0.1.0] - 2026-07-19
 
 ### Added
@@ -31,5 +44,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - GitHub Actions workflows for CI (lint, typecheck, test+coverage, build,
   self-scan), npm publish on tag, and GitHub Pages deploy of the landing page.
 
-[Unreleased]: https://github.com/DevenderSEO/leaklatch/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/DevenderSEO/leaklatch/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/DevenderSEO/leaklatch/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/DevenderSEO/leaklatch/releases/tag/v0.1.0

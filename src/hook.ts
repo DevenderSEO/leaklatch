@@ -12,13 +12,23 @@ import { join } from 'node:path';
 const BEGIN_MARKER = '# >>> leaklatch pre-commit >>>';
 const END_MARKER = '# <<< leaklatch pre-commit <<<';
 
-/** The hook body we manage between the markers. */
+/**
+ * The hook body we manage between the markers.
+ *
+ * We resolve *which* runner to use first (a globally-installed binary, an
+ * already-cached npx package, or a fresh npx download), then run the scan
+ * exactly once. Chaining `npx --no-install … || npx …` directly is wrong: both
+ * "package not installed" and "secret found" exit non-zero, so a real finding
+ * would trigger the fallback and scan (and print) a second time.
+ */
 const HOOK_BLOCK = `${BEGIN_MARKER}
 # Managed by leaklatch. Remove with: leaklatch uninstall
 if command -v leaklatch >/dev/null 2>&1; then
   leaklatch scan --staged || exit 1
+elif npx --no-install leaklatch --version >/dev/null 2>&1; then
+  npx --no-install leaklatch scan --staged || exit 1
 else
-  npx --no-install leaklatch scan --staged || npx leaklatch scan --staged || exit 1
+  npx leaklatch scan --staged || exit 1
 fi
 ${END_MARKER}`;
 

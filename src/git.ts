@@ -15,6 +15,9 @@ function git(args: string[], cwd: string): string {
     cwd,
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
+    // Ignore git's own stderr so messages like "fatal: not a git repository"
+    // don't leak in front of leaklatch's own, friendlier output.
+    stdio: ['ignore', 'pipe', 'ignore'],
   });
 }
 
