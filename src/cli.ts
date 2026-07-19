@@ -26,7 +26,10 @@ interface ScanFlags {
   verbose?: boolean;
   color?: boolean;
   updateBaseline?: boolean;
-  noBaseline?: boolean;
+  /** false when --no-baseline is passed (commander negates onto the base name). */
+  baseline?: boolean;
+  /** false when --no-generic is passed. */
+  generic?: boolean;
 }
 
 function runScan(flags: ScanFlags): number {
@@ -37,7 +40,10 @@ function runScan(flags: ScanFlags): number {
   }
 
   const config = loadConfig(cwd);
-  const baseline = flags.noBaseline ? new Set<string>() : loadBaseline(cwd);
+  if (flags.generic === false) {
+    config.disableGenericEntropy = true;
+  }
+  const baseline = flags.baseline === false ? new Set<string>() : loadBaseline(cwd);
 
   const result = scan({
     all: flags.all,
@@ -83,6 +89,7 @@ function buildProgram(): Command {
     .option('--verbose', 'show line preview, entropy, and fingerprints')
     .option('--no-color', 'disable colored output')
     .option('--no-baseline', 'ignore the baseline file for this run')
+    .option('--no-generic', 'disable the generic high-entropy detector for this run')
     .option('--update-baseline', `write current findings to ${BASELINE_FILENAME}`)
     .action((opts: ScanFlags) => {
       process.exitCode = runScan(opts);

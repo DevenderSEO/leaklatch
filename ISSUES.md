@@ -20,20 +20,7 @@ positive and a placeholder-negative test.
 
 ---
 
-### 2. Support a `--no-generic` scan flag
-
-**Difficulty:** 🟢 Easy · **Area:** `src/cli.ts`, `src/scan.ts`
-
-Some teams only want named-provider rules. Add a `--no-generic` flag that sets
-`config.disableGenericEntropy = true` for the run (without editing the config
-file). Document it in the README command table.
-
-**Acceptance:** `leaklatch scan --no-generic` never emits
-`generic-high-entropy` findings.
-
----
-
-### 3. Add SendGrid & Twilio rules
+### 2. Add SendGrid & Twilio rules
 
 **Difficulty:** 🟢 Easy · **Area:** `src/detect/rules.ts`
 
@@ -45,7 +32,7 @@ fixtures.
 
 ---
 
-### 4. Emit a summary count line in `--json` grouped by severity
+### 3. Emit a summary count line in `--json` grouped by severity
 
 **Difficulty:** 🟡 Medium · **Area:** `src/output.ts`
 
@@ -57,7 +44,7 @@ re-parsing. Add a unit test asserting the counts.
 
 ---
 
-### 5. Honor a `LEAKLATCH_DISABLE=1` environment variable
+### 4. Honor a `LEAKLATCH_DISABLE=1` environment variable
 
 **Difficulty:** 🟡 Medium · **Area:** `src/cli.ts`, hook template in `src/hook.ts`
 
