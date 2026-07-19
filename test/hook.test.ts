@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync, chmodSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { installHook, uninstallHook, BEGIN_MARKER } from '../src/hook.js';
+import { installHook, uninstallHook, BEGIN_MARKER, HOOK_BLOCK } from '../src/hook.js';
 
 function initRepo(): string {
   const dir = mkdtempSync(join(tmpdir(), 'leaklatch-hook-'));
@@ -70,6 +70,16 @@ describe('installHook / uninstallHook', () => {
     const body = readFileSync(res.path, 'utf8');
     expect(body).not.toContain(BEGIN_MARKER);
     expect(body.startsWith('#!/bin/sh')).toBe(true);
+  });
+
+  it('hook resolves the runner once and never double-scans', () => {
+    // Regression: the old fallback `npx --no-install … || npx …` would run the
+    // scan twice on a real finding (both "not installed" and "secret found"
+    // exit non-zero). The runner must be resolved with a --version probe.
+    expect(HOOK_BLOCK).toContain('npx --no-install leaklatch --version');
+    expect(HOOK_BLOCK).not.toContain('scan --staged || npx leaklatch scan');
+    // Exactly one scan invocation per branch: global, cached npx, fresh npx.
+    expect(HOOK_BLOCK.match(/leaklatch scan --staged/g)?.length).toBe(3);
   });
 
   it('uninstall is a no-op when nothing is installed', () => {

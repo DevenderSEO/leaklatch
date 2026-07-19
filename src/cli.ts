@@ -12,7 +12,11 @@ import { installHook, uninstallHook } from './hook.js';
 import { isGitRepo } from './git.js';
 import { toText, toJson } from './output.js';
 
-const VERSION = '0.1.0';
+const VERSION = '0.1.1';
+
+/** Shown when a command needs a git repo but isn't in one. */
+const GIT_REPO_HINT =
+  'leaklatch: not a git repository — run `git init` first, or run this inside an existing repo.\n';
 
 interface ScanFlags {
   all?: boolean;
@@ -31,7 +35,7 @@ interface ScanFlags {
 function runScan(flags: ScanFlags): number {
   const cwd = process.cwd();
   if (!isGitRepo(cwd)) {
-    process.stderr.write(pc.red('leaklatch: not a git repository. Run inside a git repo.\n'));
+    process.stderr.write(pc.red(GIT_REPO_HINT));
     return 2;
   }
 
@@ -97,7 +101,7 @@ function buildProgram(): Command {
     .action(() => {
       const cwd = process.cwd();
       if (!isGitRepo(cwd)) {
-        process.stderr.write(pc.red('leaklatch: not a git repository.\n'));
+        process.stderr.write(pc.red(GIT_REPO_HINT));
         process.exitCode = 2;
         return;
       }
